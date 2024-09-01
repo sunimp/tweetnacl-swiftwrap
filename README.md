@@ -4,57 +4,11 @@
 [![Build Status](https://travis-ci.org/bitmark-inc/tweetnacl-swiftwrap.svg?branch=master)](https://travis-ci.org/bitmark-inc/tweetnacl-swiftwrap) [![codecov](https://codecov.io/gh/bitmark-inc/tweetnacl-swiftwrap/branch/master/graph/badge.svg)](https://codecov.io/gh/bitmark-inc/tweetnacl-swiftwrap)
 
 ## Requirements
-- iOS 8.0+ / macOS 10.10+ / tvOS 9.0+ / watchOS 2.0+
-- Xcode 9.0+
-- Swift 4.0+
+- iOS 14.0+ / macOS 12+ / tvOS 14.0+ / watchOS 10.0+
+- Xcode 15.0+
+- Swift 5.10+
 
 ## Installation
-
-### CocoaPods
-[CocoaPods](http://cocoapods.org) is a dependency manager for Cocoa projects. You can install it with the following command:
-
-```bash
-$ gem install cocoapods
-```
-
-> CocoaPods 1.1+ is required to build TweetNacl 1.0+.
-
-To integrate TweetNacl into your Xcode project using CocoaPods, specify it in your `Podfile`:
-
-```ruby
-source 'https://github.com/CocoaPods/Specs.git'
-platform :ios, '10.0'
-use_frameworks!
-
-target '<Your Target Name>' do
-    pod 'TweetNacl', '~> 1.0.0'
-end
-```
-
-Then, run the following command:
-
-```bash
-$ pod install
-```
-
-### Carthage
-
-[Carthage](https://github.com/Carthage/Carthage) is a decentralized dependency manager that builds your dependencies and provides you with binary frameworks.
-
-You can install Carthage with [Homebrew](http://brew.sh/) using the following command:
-
-```bash
-$ brew update
-$ brew install carthage
-```
-
-To integrate TweetNacl into your Xcode project using Carthage, specify it in your `Cartfile`:
-
-```ogdl
-github "bitmark-inc/tweetnacl-swiftwrap" ~> 1.0
-```
-
-Run `carthage update` to build the framework and drag the built `TweetNacl.framework` into your Xcode project.
 
 ### Swift Package Manager
 
@@ -64,7 +18,7 @@ Once you have your Swift package set up, adding TweetNacl as a dependency is as 
 
 ```swift
 dependencies: [
-    .Package(url: "https://github.com/bitmark-inc/tweetnacl-swiftwrap.git", majorVersion: 1)
+    .Package(url: "https://github.com/sunimp/tweetnacl-swiftwrap.git", .upToNextMajor(from: "1.2.0"))
 ]
 ```
 
@@ -294,18 +248,6 @@ Length of signature in bytes.
 
 
 
-# License
+## License
 
-Copyright (c) 2014-2015 Bitmark Inc (support@bitmark.com).
-
-Permission to use, copy, modify, and distribute this software for any
-purpose with or without fee is hereby granted, provided that the above
-copyright notice and this permission notice appear in all copies.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+`tweetnacl-swiftwrap` is available under the MIT license. See the LICENSE file for more info.
