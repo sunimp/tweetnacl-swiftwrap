@@ -1,18 +1,17 @@
 //
-//  Tweetnacl.swift
-//  TweetnaclSwift
+//  TweetNacl.swift
 //
-//  Created by Anh Nguyen on 12/9/16.
-//  Copyright © 2016 Bitmark. All rights reserved.
+//  Created by Sun on 2016/12/13.
 //
 
-import Foundation
 import CTweetNacl
+import Foundation
 
-// MARK: - Utilities
+// MARK: - NaclUtil
 
-public struct NaclUtil {
-    
+public enum NaclUtil {
+    // MARK: Nested Types
+
     public enum NaclUtilError: Error {
         case badKeySize
         case badNonceSize
@@ -20,40 +19,20 @@ public struct NaclUtil {
         case badSecretKeySize
         case internalError
     }
-    
-    static func checkLengths(key: Data, nonce: Data) throws {
-        if key.count != Constants.Secretbox.keyBytes {
-            throw NaclUtilError.badKeySize
-        }
-        
-        if nonce.count != Constants.Secretbox.nonceBytes {
-            throw NaclUtilError.badNonceSize
-        }
-    }
-    
-    static func checkBoxLength(publicKey: Data, secretKey: Data) throws {
-        if publicKey.count != Constants.Box.publicKeyBytes {
-            throw NaclUtilError.badPublicKeySize
-        }
-        
-        if secretKey.count != Constants.Box.secretKeyBytes{
-            throw NaclUtilError.badSecretKeySize
-        }
-    }
-    
+
+    // MARK: Static Functions
+
     public static func secureRandomData(count: Int) throws -> Data {
         // Generation method is platform dependent
         // (The Security framework is only available on Apple platforms).
         #if os(Linux)
 
         var bytes = [UInt8]()
-        for _ in 0..<count {
-            let randomByte = UInt8.random(in: UInt8.min...UInt8.max)
+        for _ in 0 ..< count {
+            let randomByte = UInt8.random(in: UInt8.min ... UInt8.max)
             bytes.append(randomByte)
         }
-        let randomData = Data(bytes: &bytes, count: count)
-
-        return randomData
+        return Data(bytes: &bytes, count: count)
 
         #else
 
@@ -94,7 +73,7 @@ public struct NaclUtil {
     }
     
     public static func verify(x: Data, y: Data) throws -> Bool {
-        if x.count == 0 || y.count == 0 {
+        if x.isEmpty || y.isEmpty {
             throw NaclUtilError.badKeySize
         }
         
@@ -115,17 +94,41 @@ public struct NaclUtil {
         }
         return r == 0
     }
+
+    static func checkLengths(key: Data, nonce: Data) throws {
+        if key.count != Constants.Secretbox.keyBytes {
+            throw NaclUtilError.badKeySize
+        }
+        
+        if nonce.count != Constants.Secretbox.nonceBytes {
+            throw NaclUtilError.badNonceSize
+        }
+    }
+    
+    static func checkBoxLength(publicKey: Data, secretKey: Data) throws {
+        if publicKey.count != Constants.Box.publicKeyBytes {
+            throw NaclUtilError.badPublicKeySize
+        }
+        
+        if secretKey.count != Constants.Box.secretKeyBytes {
+            throw NaclUtilError.badSecretKeySize
+        }
+    }
 }
 
-// MARK: - Internal wrapper
+// MARK: - NaclWrapper
 
-struct NaclWrapper {
+enum NaclWrapper {
+    // MARK: Nested Types
+
     enum NaclWrapperError: Error {
         case invalidParameters
         case internalError
         case creationFailed
     }
-    
+
+    // MARK: Static Functions
+
     static func crypto_box_keypair(secretKey sk: Data) throws -> (publicKey: Data, secretKey: Data) {
         var pk = Data(count: Constants.Box.secretKeyBytes)
         
@@ -156,7 +159,10 @@ struct NaclWrapper {
     static func crypto_sign_keypair_seeded(secretKey: Data) throws -> (publicKey: Data, secretKey: Data) {
         var pk = Data(count: Constants.Sign.publicKeyBytes)
         var sk = Data(count: Constants.Sign.secretKeyBytes)
-        sk.replaceSubrange(0..<Constants.Sign.publicKeyBytes, with: secretKey.subdata(in: 0..<Constants.Sign.publicKeyBytes))
+        sk.replaceSubrange(
+            0 ..< Constants.Sign.publicKeyBytes,
+            with: secretKey.subdata(in: 0 ..< Constants.Sign.publicKeyBytes)
+        )
         
         let result = pk.withUnsafeMutableBytes { pkBufferPointer in
             guard let pkPointer = pkBufferPointer.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
@@ -177,20 +183,24 @@ struct NaclWrapper {
     }
 }
 
-// MARK: - Secret-key authenticated encryption
+// MARK: - NaclSecretBox
 
-public struct NaclSecretBox {
+public enum NaclSecretBox {
+    // MARK: Nested Types
+
     public enum NaclSecretBoxError: Error {
         case invalidParameters
         case internalError
         case creationFailed
     }
-    
+
+    // MARK: Static Functions
+
     public static func secretBox(message: Data, nonce: Data, key: Data) throws -> Data {
         try NaclUtil.checkLengths(key: key, nonce: nonce)
         
         var m = Data(count: Constants.Secretbox.zeroBytes + message.count)
-        m.replaceSubrange(Constants.Secretbox.zeroBytes..<m.count, with: message)
+        m.replaceSubrange(Constants.Secretbox.zeroBytes ..< m.count, with: message)
         
         var c = Data(count: m.count)
         
@@ -224,7 +234,7 @@ public struct NaclSecretBox {
         if result != 0 {
             throw NaclSecretBoxError.internalError
         }
-        return c.subdata(in: Constants.Secretbox.boxZeroBytes..<c.count)
+        return c.subdata(in: Constants.Secretbox.boxZeroBytes ..< c.count)
     }
     
     public static func open(box: Data, nonce: Data, key: Data) throws -> Data {
@@ -232,7 +242,7 @@ public struct NaclSecretBox {
         
         // Fill data
         var c = Data(count: Constants.Secretbox.boxZeroBytes + box.count)
-        c.replaceSubrange(Constants.Secretbox.boxZeroBytes..<c.count, with: box)
+        c.replaceSubrange(Constants.Secretbox.boxZeroBytes ..< c.count, with: box)
         
         var m = Data(count: c.count)
         
@@ -267,19 +277,23 @@ public struct NaclSecretBox {
             throw NaclSecretBoxError.creationFailed
         }
         
-        return m.subdata(in: Constants.Secretbox.zeroBytes..<c.count)
+        return m.subdata(in: Constants.Secretbox.zeroBytes ..< c.count)
     }
 }
 
-// MARK: - Scalar multiplication
+// MARK: - NaclScalarMult
 
-public struct NaclScalarMult {
+public enum NaclScalarMult {
+    // MARK: Nested Types
+
     public enum NaclScalarMultError: Error {
         case invalidParameters
         case internalError
         case creationFailed
     }
-    
+
+    // MARK: Static Functions
+
     public static func scalarMult(n: Data, p: Data) throws -> Data {
         if n.count != Constants.Scalarmult.scalarBytes {
             throw NaclScalarMultError.invalidParameters
@@ -343,16 +357,19 @@ public struct NaclScalarMult {
     }
 }
 
-// MARK: - Public-key authenticated encryption
+// MARK: - NaclBox
 
-public struct NaclBox {
-    
+public enum NaclBox {
+    // MARK: Nested Types
+
     public enum NaclBoxError: Error {
         case invalidParameters
         case internalError
         case creationFailed
     }
-    
+
+    // MARK: Static Functions
+
     public static func box(message: Data, nonce: Data, publicKey: Data, secretKey: Data) throws -> Data {
         let key = try before(publicKey: publicKey, secretKey: secretKey)
         return try NaclSecretBox.secretBox(message: message, nonce: nonce, key: key)
@@ -410,18 +427,45 @@ public struct NaclBox {
     }
 }
 
-// MARK: - Signatures
+// MARK: - NaclSign
 
-public struct NaclSign {
-    
+public enum NaclSign {
+    // MARK: Nested Types
+
     public enum NaclSignError: Error {
         case invalidParameters
         case internalError
         case creationFailed
     }
     
+    public enum KeyPair {
+        public static func keyPair() throws -> (publicKey: Data, secretKey: Data) {
+            return try NaclWrapper.crypto_sign_keypair()
+        }
+        
+        public static func keyPair(fromSecretKey secretKey: Data) throws -> (publicKey: Data, secretKey: Data) {
+            if secretKey.count != Constants.Sign.secretKeyBytes {
+                throw NaclSignError.invalidParameters
+            }
+            
+            let pk = secretKey.subdata(in: Constants.Sign.publicKeyBytes ..< Constants.Sign.secretKeyBytes)
+            
+            return (pk, secretKey)
+        }
+        
+        public static func keyPair(fromSeed seed: Data) throws -> (publicKey: Data, secretKey: Data) {
+            if seed.count != Constants.Sign.seedBytes {
+                throw NaclSignError.invalidParameters
+            }
+            
+            return try NaclWrapper.crypto_sign_keypair_seeded(secretKey: seed)
+        }
+    }
+
+    // MARK: Static Functions
+
     public static func sign(message: Data, secretKey: Data) throws -> Data {
-        if secretKey.count != Constants.Sign.secretKeyBytes{
+        if secretKey.count != Constants.Sign.secretKeyBytes {
             throw NaclSignError.invalidParameters
         }
         
@@ -430,7 +474,10 @@ public struct NaclSign {
         let tmpLength = UnsafeMutablePointer<UInt64>.allocate(capacity: 1)
         
         let result = signedMessage.withUnsafeMutableBytes { signedMessageBufferPointer in
-            guard let signedMessagePointer = signedMessageBufferPointer.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+            guard
+                let signedMessagePointer = signedMessageBufferPointer.baseAddress?
+                    .assumingMemoryBound(to: UInt8.self)
+            else {
                 return -1
             }
             return message.withUnsafeBytes { messageBufferPointer in
@@ -438,7 +485,10 @@ public struct NaclSign {
                     return -1
                 }
                 return secretKey.withUnsafeBytes { secretKeyBufferPointer in
-                    guard let secretKeyPointer = secretKeyBufferPointer.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                    guard
+                        let secretKeyPointer = secretKeyBufferPointer.baseAddress?
+                            .assumingMemoryBound(to: UInt8.self)
+                    else {
                         return -1
                     }
                     return Int(CTweetNacl.crypto_sign_ed25519_tweet(
@@ -471,11 +521,17 @@ public struct NaclSign {
                 return -1
             }
             return signedMessage.withUnsafeBytes { signedMessageBufferPointer in
-                guard let signMessagePointer = signedMessageBufferPointer.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                guard
+                    let signMessagePointer = signedMessageBufferPointer.baseAddress?
+                        .assumingMemoryBound(to: UInt8.self)
+                else {
                     return -1
                 }
                 return publicKey.withUnsafeBytes { publicKeyBufferPointer in
-                    guard let publicKeyPointer = publicKeyBufferPointer.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                    guard
+                        let publicKeyPointer = publicKeyBufferPointer.baseAddress?
+                            .assumingMemoryBound(to: UInt8.self)
+                    else {
                         return -1
                     }
                     return Int(CTweetNacl.crypto_sign_ed25519_tweet_open(
@@ -498,7 +554,7 @@ public struct NaclSign {
     public static func signDetached(message: Data, secretKey: Data) throws -> Data {
         let signedMessage = try sign(message: message, secretKey: secretKey)
         
-        let sig = signedMessage.subdata(in: 0..<Constants.Sign.bytes)
+        let sig = signedMessage.subdata(in: 0 ..< Constants.Sign.bytes)
         
         return sig as Data
     }
@@ -516,7 +572,7 @@ public struct NaclSign {
         
         var m = Data(count: Constants.Sign.bytes + message.count)
         
-        sm.append(sig )
+        sm.append(sig)
         sm.append(message)
         
         let tmpLength = UnsafeMutablePointer<UInt64>.allocate(capacity: 1)
@@ -530,7 +586,10 @@ public struct NaclSign {
                     return -1
                 }
                 return publicKey.withUnsafeBytes { publicKeyBufferPointer in
-                    guard let publicKeyPointer = publicKeyBufferPointer.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                    guard
+                        let publicKeyPointer = publicKeyBufferPointer.baseAddress?
+                            .assumingMemoryBound(to: UInt8.self)
+                    else {
                         return -1
                     }
                     return Int(CTweetNacl.crypto_sign_ed25519_tweet_open(
@@ -545,29 +604,4 @@ public struct NaclSign {
         }
         return result == 0
     }
-    
-    public struct KeyPair {
-        public static func keyPair() throws -> (publicKey: Data, secretKey: Data) {
-            return try NaclWrapper.crypto_sign_keypair()
-        }
-        
-        public static func keyPair(fromSecretKey secretKey: Data) throws -> (publicKey: Data, secretKey: Data) {
-            if secretKey.count != Constants.Sign.secretKeyBytes {
-                throw NaclSignError.invalidParameters
-            }
-            
-            let pk = secretKey.subdata(in: Constants.Sign.publicKeyBytes..<Constants.Sign.secretKeyBytes)
-            
-            return (pk, secretKey)
-        }
-        
-        public static func keyPair(fromSeed seed: Data) throws -> (publicKey: Data, secretKey: Data) {
-            if seed.count != Constants.Sign.seedBytes {
-                throw NaclSignError.invalidParameters
-            }
-            
-            return try NaclWrapper.crypto_sign_keypair_seeded(secretKey: seed)
-        }
-    }
 }
-

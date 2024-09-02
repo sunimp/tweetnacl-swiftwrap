@@ -5,7 +5,7 @@
 
 ## Requirements
 - iOS 14.0+ / macOS 12+ / tvOS 14.0+ / watchOS 10.0+
-- Xcode 15.0+
+- Xcode 15.4+
 - Swift 5.10+
 
 ## Installation
@@ -18,7 +18,7 @@ Once you have your Swift package set up, adding TweetNacl as a dependency is as 
 
 ```swift
 dependencies: [
-    .Package(url: "https://github.com/sunimp/tweetnacl-swiftwrap.git", .upToNextMajor(from: "1.2.0"))
+    .Package(url: "https://github.com/sunimp/tweetnacl-swiftwrap.git", .upToNextMajor(from: "1.3.0"))
 ]
 ```
 

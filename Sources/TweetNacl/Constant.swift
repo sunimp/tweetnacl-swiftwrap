@@ -1,13 +1,11 @@
 //
 //  Constant.swift
-//  TweetnaclSwift
 //
-//  Created by Anh Nguyen on 12/9/16.
-//  Copyright © 2016 Bitmark. All rights reserved.
+//  Created by Sun on 2017/10/20.
 //
 
-struct Constants {
-    struct Box {
+enum Constants {
+    enum Box {
         static let publicKeyBytes = 32
         static let secretKeyBytes = 32
         static let beforeNMBytes = 32
@@ -16,23 +14,23 @@ struct Constants {
         static let boxZeroBytes = Secretbox.boxZeroBytes
     }
 
-    struct Hash {
+    enum Hash {
         static let bytes = 64
     }
 
-    struct Scalarmult {
+    enum Scalarmult {
         static let bytes = 32
         static let scalarBytes = 32
     }
 
-    struct Secretbox {
+    enum Secretbox {
         static let keyBytes = 32
         static let nonceBytes = 24
         static let zeroBytes = 32
         static let boxZeroBytes = 16
     }
 
-    struct Sign {
+    enum Sign {
         static let bytes = 64
         static let publicKeyBytes = 32
         static let secretKeyBytes = 64

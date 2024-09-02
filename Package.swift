@@ -16,7 +16,9 @@ let package = Package(
             name: "TweetNacl",
             targets: ["TweetNacl"]),
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/nicklockwood/SwiftFormat.git", from: "0.54.3"),
+    ],
     targets: [
         .target(name: "CTweetNacl"),
         .target(

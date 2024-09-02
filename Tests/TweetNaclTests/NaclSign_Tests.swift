@@ -1,28 +1,27 @@
 //
 //  NaclSign_Tests.swift
-//  NaclSign_Tests
 //
-//  Created by Anh Nguyen on 12/12/16.
-//  Copyright © 2016 Bitmark. All rights reserved.
+//  Created by Sun on 2016/12/14.
 //
 
-import XCTest
 @testable import TweetNacl
+import XCTest
 
 class NaclSign_Test: XCTestCase {
-    
-    
+    // MARK: Overridden Functions
+
     override func setUp() {
         super.setUp()
         // Put setup code here. This method is called before the invocation of each test method in the class.
-        
     }
     
     override func tearDown() {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
         super.tearDown()
     }
-    
+
+    // MARK: Functions
+
     func testKeyPair() {
         do {
             let keypair = try NaclSign.KeyPair.keyPair()
@@ -30,11 +29,9 @@ class NaclSign_Test: XCTestCase {
             XCTAssertEqual(keypair.secretKey.count, Constants.Sign.secretKeyBytes)
             XCTAssertNotEqual(keypair.secretKey.count, keypair.publicKey.count)
             XCTAssertNotEqual(keypair.secretKey.base64EncodedString(), keypair.publicKey.base64EncodedString())
-        }
-        catch {
+        } catch {
             XCTFail()
         }
-        
     }
     
     func testKeyPairFromSecret() {
@@ -43,8 +40,7 @@ class NaclSign_Test: XCTestCase {
             let k2 = try NaclSign.KeyPair.keyPair(fromSecretKey: k1.secretKey)
             XCTAssertEqual(k1.secretKey.base64EncodedString(), k2.secretKey.base64EncodedString())
             XCTAssertEqual(k1.publicKey.base64EncodedString(), k2.publicKey.base64EncodedString())
-        }
-        catch {
+        } catch {
             XCTFail()
         }
     }
@@ -53,7 +49,7 @@ class NaclSign_Test: XCTestCase {
         do {
             let keypair = try NaclSign.KeyPair.keyPair()
             
-            let bytes = [UInt32](repeating: 0, count: 100).map { _ in 0xff }
+            let bytes = [UInt32](repeating: 0, count: 100).map { _ in 0xFF }
             let message = Data(bytes: bytes, count: 100)
             
             let signedMessage = try NaclSign.sign(message: message, secretKey: keypair.secretKey)
@@ -61,8 +57,7 @@ class NaclSign_Test: XCTestCase {
             
             let openedMessage = try NaclSign.signOpen(signedMessage: signedMessage, publicKey: keypair.publicKey)
             XCTAssertNotNil(openedMessage, "Signed Message must be opened")
-        }
-        catch {
+        } catch {
             XCTFail()
         }
     }
@@ -79,8 +74,7 @@ class NaclSign_Test: XCTestCase {
             XCTAssertEqual(k2.publicKey.count, Constants.Sign.publicKeyBytes)
             XCTAssertEqual(k1.secretKey.base64EncodedString(), k2.secretKey.base64EncodedString())
             XCTAssertEqual(k1.publicKey.base64EncodedString(), k2.publicKey.base64EncodedString())
-        }
-        catch {
+        } catch {
             XCTFail()
         }
     }
@@ -89,8 +83,8 @@ class NaclSign_Test: XCTestCase {
         do {
             let k = try NaclSign.KeyPair.keyPair()
             var bytes = [UInt32](repeating: 0, count: 100)
-            for index in 0..<bytes.count {
-                bytes[index] = UInt32(index) & 0xff
+            for index in 0 ..< bytes.count {
+                bytes[index] = UInt32(index) & 0xFF
             }
             let message = Data(bytes: bytes, count: 100)
             
@@ -100,17 +94,27 @@ class NaclSign_Test: XCTestCase {
             let result = try NaclSign.signDetachedVerify(message: message, sig: sig, publicKey: k.publicKey)
             XCTAssertNotNil(result, "signature must be verified")
             
-            XCTAssertThrowsError(try NaclSign.signDetachedVerify(message: message, sig: sig, publicKey: k.publicKey.subdata(in: 0..<1)))
+            XCTAssertThrowsError(try NaclSign.signDetachedVerify(
+                message: message,
+                sig: sig,
+                publicKey: k.publicKey.subdata(in: 0 ..< 1)
+            ))
                 
-            XCTAssertThrowsError(try NaclSign.signDetachedVerify(message: message, sig: sig.subdata(in: 0..<1), publicKey: k.publicKey))
+            XCTAssertThrowsError(try NaclSign.signDetachedVerify(
+                message: message,
+                sig: sig.subdata(in: 0 ..< 1),
+                publicKey: k.publicKey
+            ))
             
             let badPublicKey = try NaclUtil.secureRandomData(count: k.publicKey.count)
             XCTAssertEqual(try NaclSign.signDetachedVerify(message: message, sig: sig, publicKey: badPublicKey), false)
             
             let badSigKey = try NaclUtil.secureRandomData(count: sig.count)
-            XCTAssertEqual(try NaclSign.signDetachedVerify(message: message, sig: badSigKey, publicKey: k.publicKey), false)
-        }
-        catch {
+            XCTAssertEqual(
+                try NaclSign.signDetachedVerify(message: message, sig: badSigKey, publicKey: k.publicKey),
+                false
+            )
+        } catch {
             XCTFail()
         }
     }

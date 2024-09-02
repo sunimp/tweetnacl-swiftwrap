@@ -1,20 +1,38 @@
 //
 //  NaclBox_Tests.swift
-//  NaclBox_Tests
 //
-//  Created by Anh Nguyen on 12/12/16.
-//  Copyright © 2016 Bitmark. All rights reserved.
+//  Created by Sun on 2016/12/13.
 //
 
-import XCTest
 @testable import TweetNacl
+import XCTest
 
 class NaclBox_Test: XCTestCase {
-    
-    public var data: Array<String>?
+    // MARK: Overridden Properties
+
+    override class var defaultTestSuite: XCTestSuite {
+        let testSuite = XCTestSuite(name: NSStringFromClass(self))
+        
+        let fileURL = Bundle.module.url(forResource: "BoxTestData", withExtension: "json")
+        let fileData = try! Data(contentsOf: fileURL!)
+        let json = try! JSONSerialization.jsonObject(with: fileData, options: [])
+        let arrayOfData = json as! [[String]]
+        
+        for array in arrayOfData {
+            addTestsWithArray(array: array, toTestSuite: testSuite)
+        }
+        
+        return testSuite
+    }
+
+    // MARK: Properties
+
+    public var data: [String]?
+
     private var nonce = Data(count: Constants.Box.nonceBytes)
-    
-    
+
+    // MARK: Overridden Functions
+
     override func setUp() {
         super.setUp()
         // Put setup code here. This method is called before the invocation of each test method in the class.
@@ -24,7 +42,28 @@ class NaclBox_Test: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
         super.tearDown()
     }
-    
+
+    // MARK: Class Functions
+
+    private class func addTestsWithArray(array: [String], toTestSuite testSuite: XCTestSuite) {
+        // Returns an array of NSInvocation, which are not available in Swift, but still seems to work.
+        let invocations = testInvocations
+        for invocation in invocations {
+            // We can't directly use the NSInvocation type in our source, but it appears
+            // that we can pass it on through.
+            let testCase = NaclBox_Test(invocation: invocation)
+            
+            // Normally the "parameterized" values are passed during initialization.
+            // This is a "good enough" workaround. You'll see that I simply force unwrap
+            // the optional at the callspot.
+            testCase.data = array
+            
+            testSuite.addTest(testCase)
+        }
+    }
+
+    // MARK: Functions
+
     func testBox() {
         let pk = Data(base64Encoded: data![0])!
         let sk = Data(base64Encoded: data![1])!
@@ -38,43 +77,8 @@ class NaclBox_Test: XCTestCase {
             
             XCTAssertEqual(boxEncoded, goodBox)
             XCTAssertEqual(open, msg)
-        }
-        catch {
+        } catch {
             XCTFail()
-        }
-    }
-    
-    override class var defaultTestSuite: XCTestSuite {
-        
-        let testSuite = XCTestSuite(name: NSStringFromClass(self))
-        
-        let fileURL = Bundle.module.url(forResource: "BoxTestData", withExtension: "json")
-        let fileData = try! Data(contentsOf: fileURL!)
-        let json = try! JSONSerialization.jsonObject(with: fileData, options: [])
-        let arrayOfData = json as! [Array<String>]
-        
-        for array in arrayOfData {
-            addTestsWithArray(array: array, toTestSuite: testSuite)
-        }
-        
-        return testSuite
-    }
-    
-    private class func addTestsWithArray(array: [String], toTestSuite testSuite: XCTestSuite) {
-        // Returns an array of NSInvocation, which are not available in Swift, but still seems to work.
-        let invocations = self.testInvocations
-        for invocation in invocations {
-            
-            // We can't directly use the NSInvocation type in our source, but it appears
-            // that we can pass it on through.
-            let testCase = NaclBox_Test(invocation: invocation)
-            
-            // Normally the "parameterized" values are passed during initialization.
-            // This is a "good enough" workaround. You'll see that I simply force unwrap
-            // the optional at the callspot.
-            testCase.data = array
-            
-            testSuite.addTest(testCase)
         }
     }
 }
